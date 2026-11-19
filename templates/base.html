@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}MediCare{% endblock %} | Hospital Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+{% if current_user.is_authenticated %}
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar">
+    <a class="brand" href="{{ url_for('dashboard') }}"><span class="brand-mark"><i class="fa-solid fa-heart-pulse"></i></span><span>MediCare<small>HOSPITAL SYSTEM</small></span></a>
+    <div class="nav-label">WORKSPACE</div>
+    <nav class="nav-links">
+      <a href="{{ url_for('dashboard') }}" class="{{ 'active' if request.endpoint == 'dashboard' else '' }}"><i class="fa-solid fa-grid-2"></i> Dashboard</a>
+      <a href="{{ url_for('patients') }}" class="{{ 'active' if request.endpoint in ['patients','add_patient','edit_patient'] else '' }}"><i class="fa-solid fa-users"></i> Patients</a>
+      <a href="{{ url_for('doctors') }}" class="{{ 'active' if request.endpoint in ['doctors','add_doctor','edit_doctor'] else '' }}"><i class="fa-solid fa-user-doctor"></i> Doctors</a>
+      <a href="{{ url_for('appointments') }}" class="{{ 'active' if request.endpoint in ['appointments','add_appointment'] else '' }}"><i class="fa-regular fa-calendar-check"></i> Appointments</a>
+      <a href="{{ url_for('billing') }}" class="{{ 'active' if request.endpoint in ['billing','add_bill'] else '' }}"><i class="fa-regular fa-credit-card"></i> Billing</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <div class="help-card"><div class="help-icon"><i class="fa-solid fa-shield-heart"></i></div><strong>Care made simpler</strong><p>Keep hospital operations organized in one place.</p></div>
+      <a href="{{ url_for('logout') }}" class="logout-link"><i class="fa-solid fa-arrow-right-from-bracket"></i> Sign out</a>
+    </div>
+  </aside>
+  <main class="main-area">
+    <header class="topbar">
+      <button class="menu-toggle" id="menuToggle" aria-label="Toggle menu"><i class="fa-solid fa-bars"></i></button>
+      <div class="breadcrumb">Hospital / <strong>{% block page_name %}Dashboard{% endblock %}</strong></div>
+      <div class="top-user"><div class="top-avatar">{{ current_user.username[0]|upper }}</div><div><strong>{{ current_user.username }}</strong><small>{{ current_user.role }}</small></div></div>
+    </header>
+    <section class="page-content">
+      {% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}<div class="flash-stack">{% for category, message in messages %}<div class="flash {{ category }}">{{ message }}<button onclick="this.parentElement.remove()" aria-label="Dismiss">&times;</button></div>{% endfor %}</div>{% endif %}{% endwith %}
+      {% block content %}{% endblock %}
+    </section>
+    <footer class="footer">© {{ now_year }} MediCare Hospital Management System <span>Care • Efficiency • Trust</span></footer>
+  </main>
+</div>
+{% else %}
+{% with messages = get_flashed_messages(with_categories=true) %}{% if messages %}<div class="login-flashes">{% for category, message in messages %}<div class="flash {{ category }}">{{ message }}</div>{% endfor %}</div>{% endif %}{% endwith %}
+{% block auth_content %}{% endblock %}
+{% endif %}
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block scripts %}{% endblock %}
+</body></html>

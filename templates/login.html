@@ -1,0 +1,8 @@
+{% extends "base.html" %}{% block title %}Sign in{% endblock %}
+{% block auth_content %}
+<div class="login-page">
+  <div class="login-visual"><div class="login-brand"><span class="brand-mark"><i class="fa-solid fa-heart-pulse"></i></span><span>MediCare</span></div><div class="visual-copy"><span class="eyebrow">SMARTER HOSPITAL OPERATIONS</span><h1>Better care starts with better organization.</h1><p>Manage patients, appointments, doctors and billing from one simple workspace.</p></div><div class="visual-foot">A connected approach to patient care.</div></div>
+  <div class="login-panel"><div class="login-form-wrap"><div class="mobile-brand"><span class="brand-mark"><i class="fa-solid fa-heart-pulse"></i></span> MediCare</div><span class="eyebrow">WELCOME BACK</span><h2>Sign in to your account</h2><p class="muted">Enter your credentials to continue.</p>
+  <form method="POST" class="form-stack"><label>Username<input name="username" required autocomplete="username" placeholder="Enter username"></label><label>Password<input name="password" type="password" required autocomplete="current-password" placeholder="Enter password"></label><button class="btn btn-primary btn-full" type="submit">Sign in <i class="fa-solid fa-arrow-right"></i></button></form><div class="login-note"><i class="fa-solid fa-lock"></i> Secure access for authorized staff only.</div></div></div>
+</div>
+{% endblock %}
