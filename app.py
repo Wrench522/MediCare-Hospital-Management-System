@@ -22,13 +22,30 @@ database_url = os.environ.get("DATABASE_URL")
 if database_url:
     # Support PostgreSQL connection URLs from hosting providers
     if database_url.startswith("postgres://"):
-        database_url = database_url.replace("postgres://", "postgresql://", 1)
+        database_url = database_url.replace(
+            "postgres://", "postgresql://", 1
+        )
+
+    if database_url.startswith("postgresql+psycopg://"):
+        database_url = database_url.replace(
+            "postgresql+psycopg://",
+            "postgresql+psycopg2://",
+            1
+        )
+    elif database_url.startswith("postgresql://"):
+        database_url = database_url.replace(
+            "postgresql://",
+            "postgresql+psycopg2://",
+            1
+        )
 
     app.config["SQLALCHEMY_DATABASE_URI"] = database_url
 
 elif os.environ.get("VERCEL"):
     # Do not silently use temporary SQLite storage on Vercel
-    raise RuntimeError("DATABASE_URL is missing. Configure a persistent PostgreSQL database.")
+    raise RuntimeError(
+        "DATABASE_URL is missing. Configure a persistent PostgreSQL database."
+    )
 
 else:
     # Use SQLite for local development on Fedora
@@ -40,6 +57,7 @@ else:
     )
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
 
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
