@@ -1,3 +1,4 @@
+
 import os
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
@@ -11,11 +12,35 @@ from sqlalchemy import or_
 
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 app = Flask(__name__)
+
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "change-this-development-secret")
-app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(BASE_DIR, "database", "hospital.db")
+
+
+# Database configuration
+database_url = os.environ.get("DATABASE_URL")
+
+if database_url:
+    # Support PostgreSQL connection URLs from hosting providers
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = database_url
+
+elif os.environ.get("VERCEL"):
+    # Do not silently use temporary SQLite storage on Vercel
+    raise RuntimeError("DATABASE_URL is missing. Configure a persistent PostgreSQL database.")
+
+else:
+    # Use SQLite for local development on Fedora
+    database_dir = os.path.join(BASE_DIR, "database")
+    os.makedirs(database_dir, exist_ok=True)
+
+    app.config["SQLALCHEMY_DATABASE_URI"] = (
+        "sqlite:///" + os.path.join(database_dir, "hospital.db")
+    )
+
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-os.makedirs(os.path.join(BASE_DIR, "database"), exist_ok=True)
 db = SQLAlchemy(app)
 login_manager = LoginManager(app)
 login_manager.login_view = "login"
@@ -392,22 +417,30 @@ def record_payment(bill_id):
 
 @app.route("/setup")
 def setup():
-    """Create tables and a starter admin account on first run."""
+    """Initialize the database using a private one-time setup token."""
+    setup_token = os.environ.get("SETUP_TOKEN")
+    provided_token = request.args.get("token", "")
+
+    if not setup_token or not provided_token or provided_token != setup_token:
+        abort(404)
+
     db.create_all()
+
     if not User.query.filter_by(username="admin").first():
         admin = User(username="admin", role="Admin")
-        admin.set_password(os.environ.get("ADMIN_PASSWORD", "Admin@12345"))
+        admin.set_password(os.environ["ADMIN_PASSWORD"])
         db.session.add(admin)
         db.session.commit()
-    return "Database initialized. Starter account: admin / Admin@12345. Delete or protect this setup route after initialization."
 
-
+    return "Database initialized successfully."
 if __name__ == "__main__":
     with app.app_context():
         db.create_all()
+
         if not User.query.filter_by(username="admin").first():
             admin = User(username="admin", role="Admin")
             admin.set_password(os.environ.get("ADMIN_PASSWORD", "Admin@12345"))
             db.session.add(admin)
             db.session.commit()
+
     app.run(debug=True)
